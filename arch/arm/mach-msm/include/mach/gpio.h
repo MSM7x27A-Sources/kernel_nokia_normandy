@@ -22,6 +22,9 @@
 #include <asm-generic/gpio.h>
 #include <mach/irqs.h>
 
+#define gpio_get_value	__gpio_get_value
+#define gpio_set_value	__gpio_set_value
+
 #define FIRST_BOARD_GPIO	NR_GPIO_IRQS
 
 extern struct irq_chip msm_gpio_irq_extn;

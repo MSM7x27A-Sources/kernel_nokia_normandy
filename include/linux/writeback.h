@@ -141,6 +141,12 @@ extern unsigned int dirty_writeback_active_interval;
 extern unsigned int dirty_writeback_suspend_interval;
 #endif
 
+#ifdef CONFIG_DYNAMIC_PAGE_WRITEBACK
+extern int dyn_dirty_writeback_enabled;
+extern unsigned int dirty_writeback_active_interval;
+extern unsigned int dirty_writeback_suspend_interval;
+#endif
+
 extern int dirty_background_ratio_handler(struct ctl_table *table, int write,
 		void __user *buffer, size_t *lenp,
 		loff_t *ppos);

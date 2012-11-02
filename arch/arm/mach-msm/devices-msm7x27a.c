@@ -920,6 +920,14 @@ static struct resource kgsl_3d0_resources[] = {
 static struct kgsl_device_platform_data kgsl_3d0_pdata = {
 	.pwrlevel = {
 		{
+			.gpu_freq = 300000000,
+			.bus_freq = 200000000,
+		},
+		{
+			.gpu_freq = 266000000,
+			.bus_freq = 200000000,
+		},
+		{
 			.gpu_freq = 245760000,
 			.bus_freq = 200000000,
 		},
@@ -928,7 +936,7 @@ static struct kgsl_device_platform_data kgsl_3d0_pdata = {
 			.bus_freq = 160000000,
 		},
 		{
-			.gpu_freq = 133330000,
+			.gpu_freq = 192000000,
 			.bus_freq = 0,
 		},
 	},
@@ -1873,7 +1881,7 @@ static void __init msm_cpr_init(void)
 	uint8_t ring_osc = 0;
 #if defined(CONFIG_MSM_FUSE_INFO_DEBUG)
 	char tmp_buf[100] = "";
-	uint32_t fuse_len = 0; 
+	uint32_t fuse_len = 0;
 #endif
 
 	cpr_info = kzalloc(sizeof(struct cpr_info_type), GFP_KERNEL);

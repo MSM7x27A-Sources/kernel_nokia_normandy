@@ -32,16 +32,6 @@ struct scm_register_core {
 	phys_addr_t core_param_phy;
 };
 
-struct scm_algo {
-	uint32_t core_id;
-	phys_addr_t algo_phy;
-};
-
-struct scm_init {
-	uint32_t phy;
-	uint32_t size;
-};
-
 struct scm_pwr_param {
 	uint32_t	core_id;
 	phys_addr_t	pwr_param_phy;
@@ -55,6 +45,16 @@ struct msm_algo_param {
 		struct msm_dcvs_algo_param	dcvs_param;
 		struct msm_mpd_algo_param	mpd_param;
 	} u;
+};
+
+struct scm_algo {
+	uint32_t core_id;
+	phys_addr_t algo_phy;
+};
+
+struct scm_init {
+	uint32_t phy;
+	uint32_t size;
 };
 
 int msm_dcvs_scm_init(size_t size)

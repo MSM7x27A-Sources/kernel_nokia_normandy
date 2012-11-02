@@ -70,6 +70,8 @@
 #define AUDIT_TTY_GET		1016	/* Get TTY auditing status */
 #define AUDIT_TTY_SET		1017	/* Set TTY auditing status */
 
+#define LSM_AUDIT_DATA_IOCTL_OP	11
+
 #define AUDIT_FIRST_USER_MSG	1100	/* Userspace messages mostly uninteresting to kernel */
 #define AUDIT_USER_AVC		1107	/* We filter this differently */
 #define AUDIT_USER_TTY		1124	/* Non-ICANON TTY input meaning */
@@ -480,14 +482,14 @@ static inline void audit_syscall_entry(int arch, int major, unsigned long a0,
 				       unsigned long a1, unsigned long a2,
 				       unsigned long a3)
 {
-	if (unlikely(current->audit_context))
+	if (unlikely(!audit_dummy_context()))
 		__audit_syscall_entry(arch, major, a0, a1, a2, a3);
 }
 static inline void audit_syscall_exit(void *pt_regs)
 {
 	if (unlikely(current->audit_context)) {
 		int success = is_syscall_success(pt_regs);
-		long return_code = regs_return_value(pt_regs);
+		int return_code = regs_return_value(pt_regs);
 
 		__audit_syscall_exit(success, return_code);
 	}

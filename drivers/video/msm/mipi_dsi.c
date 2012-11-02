@@ -100,6 +100,8 @@ static int mipi_dsi_off(struct platform_device *pdev)
 	struct msm_fb_data_type *mfd;
 	struct msm_panel_info *pinfo;
 
+    pr_debug("%s+:\n", __func__);
+
 	mfd = platform_get_drvdata(pdev);
 	pinfo = &mfd->panel_info;
 
@@ -113,7 +115,7 @@ static int mipi_dsi_off(struct platform_device *pdev)
 	/* make sure dsi clk is on so that
 	 * dcs commands can be sent
 	 */
-	mipi_dsi_clk_cfg(1);
+		mipi_dsi_clk_cfg(1);
 
 	/* make sure dsi_cmd_mdp is idle */
 	mipi_dsi_cmd_mdp_busy();
@@ -130,13 +132,11 @@ static int mipi_dsi_off(struct platform_device *pdev)
 				if (MDP_REV_303 != mdp_rev)
 					gpio_free(vsync_gpio);
 			}
-			//ensure platform TE off modify TE IRQ GPIO to output 0
-			//mipi_dsi_set_tear_off(mfd);
+			mipi_dsi_set_tear_off(mfd);
 		}
 	}
 
 	ret = panel_next_off(pdev);
-
 #ifdef CONFIG_MSM_BUS_SCALING
 	mdp_bus_scale_update_request(0);
 #endif
@@ -152,7 +152,7 @@ static int mipi_dsi_off(struct platform_device *pdev)
 	mipi_dsi_ahb_ctrl(0);
 	spin_unlock_bh(&dsi_clk_lock);
 
-	mipi_dsi_unprepare_clocks();
+		mipi_dsi_unprepare_clocks();
 	if (mipi_dsi_pdata && mipi_dsi_pdata->dsi_power_save)
 		mipi_dsi_pdata->dsi_power_save(0);
 
@@ -179,6 +179,8 @@ static int mipi_dsi_on(struct platform_device *pdev)
 	u32 ystride, bpp, data;
 	u32 dummy_xres, dummy_yres;
 	int target_type = 0;
+
+    pr_debug("%s+:\n", __func__);
 
 	mfd = platform_get_drvdata(pdev);
 	fbi = mfd->fbi;
@@ -236,8 +238,7 @@ static int mipi_dsi_on(struct platform_device *pdev)
 					width + dummy_xres + hfp - 1));
 		} else {
 			/* DSI_LAN_SWAP_CTRL */
-			MIPI_OUTP(MIPI_DSI_BASE + 0x00ac,
-						mipi_dsi_pdata->dlane_swap);
+			MIPI_OUTP(MIPI_DSI_BASE + 0x00ac, mipi->dlane_swap);
 
 			MIPI_OUTP(MIPI_DSI_BASE + 0x20,
 				((hbp + width + dummy_xres) << 16 | (hbp)));
@@ -275,7 +276,7 @@ static int mipi_dsi_on(struct platform_device *pdev)
 		MIPI_OUTP(MIPI_DSI_BASE + 0x58, data);
 	}
 
-	mipi_dsi_host_init(mipi, mipi_dsi_pdata->dlane_swap);
+	mipi_dsi_host_init(mipi);
 
 	if (mipi->force_clk_lane_hs) {
 		u32 tmp;
@@ -290,8 +291,9 @@ static int mipi_dsi_on(struct platform_device *pdev)
 		mutex_lock(&mfd->dma->ov_mutex);
 	else
 		down(&mfd->dma->mutex);
-		
-	ret = panel_next_on(pdev);
+
+	if (mfd->op_enable)
+		ret = panel_next_on(pdev);
 
 	mipi_dsi_op_mode_config(mipi->mode);
 
@@ -325,7 +327,9 @@ static int mipi_dsi_on(struct platform_device *pdev)
 							__func__, vsync_gpio);
 						}
 						tlmm_settings = TRUE;
-						gpio_direction_input(vsync_gpio);
+
+						gpio_direction_input(
+							vsync_gpio);
 					} else {
 						if (!tlmm_settings) {
 							pr_err(
@@ -336,15 +340,9 @@ static int mipi_dsi_on(struct platform_device *pdev)
 					}
 				}
 			}
-			//this is the platform base logic, the tear will turn on every wake up
-			//LCM driver will do this so skip it here
-			//mipi_dsi_set_tear_on(mfd);
+			mipi_dsi_set_tear_on(mfd);
 		}
 	}
-
-#ifdef CONFIG_MSM_BUS_SCALING
-	mdp_bus_scale_update_request(2);
-#endif
 
 	mdp4_overlay_dsi_state_set(ST_DSI_RESUME);
 
@@ -356,6 +354,12 @@ static int mipi_dsi_on(struct platform_device *pdev)
 	pr_debug("%s-:\n", __func__);
 
 	return ret;
+}
+
+
+static int mipi_dsi_late_init(struct platform_device *pdev)
+{
+	return panel_next_late_init(pdev);
 }
 
 
@@ -505,6 +509,7 @@ static int mipi_dsi_probe(struct platform_device *pdev)
 	pdata = mdp_dev->dev.platform_data;
 	pdata->on = mipi_dsi_on;
 	pdata->off = mipi_dsi_off;
+	pdata->late_init = mipi_dsi_late_init;
 	pdata->next = pdev;
 
 	/*

@@ -1133,6 +1133,7 @@ static struct ctl_table vm_table[] = {
 		.extra1		= &zero,
 	},
 #endif
+#endif	
 	{
 		.procname	= "dirty_expire_centisecs",
 		.data		= &dirty_expire_interval,
@@ -1598,7 +1599,7 @@ static struct ctl_table debug_table[] = {
 #endif
 	{ }
 };
-
+#if defined(CONFIG_SYSCTL)
 static struct ctl_table dev_table[] = {
 	{ }
 };

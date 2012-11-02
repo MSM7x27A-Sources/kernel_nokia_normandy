@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -67,11 +67,9 @@ int32_t msm_actuator_i2c_write(struct msm_actuator_ctrl_t *a_ctrl,
 	struct msm_actuator_reg_params_t *write_arr = a_ctrl->reg_tbl;
 	uint32_t hw_dword = hw_params;
 	uint16_t i2c_byte1 = 0, i2c_byte2 = 0;
-	uint32_t value = 0;
+	uint16_t value = 0;
 	uint32_t size = a_ctrl->reg_tbl_size, i = 0;
 	int32_t rc = 0;
-	unsigned char buf[4];
-	int length = 0;
 	CDBG("%s: IN\n", __func__);
 	for (i = 0; i < size; i++) {
 		if (write_arr[i].reg_write_type == MSM_ACTUATOR_WRITE_DAC) {
@@ -84,7 +82,7 @@ int32_t msm_actuator_i2c_write(struct msm_actuator_ctrl_t *a_ctrl,
 				i2c_byte1 = write_arr[i].reg_addr;
 				i2c_byte2 = value;
 				if (size != (i+1)) {
-					i2c_byte2 = value & 0xFF;
+					i2c_byte2 = (i2c_byte2 & 0xFF00) >> 8;
 					CDBG("%s: byte1:0x%x, byte2:0x%x\n",
 					__func__, i2c_byte1, i2c_byte2);
 					rc = msm_camera_i2c_write(
@@ -99,33 +97,13 @@ int32_t msm_actuator_i2c_write(struct msm_actuator_ctrl_t *a_ctrl,
 
 					i++;
 					i2c_byte1 = write_arr[i].reg_addr;
-					i2c_byte2 = (value & 0xFF00) >> 8;
+					i2c_byte2 = value & 0xFF;
 				}
 			} else {
 				i2c_byte1 = (value & 0xFF00) >> 8;
 				i2c_byte2 = value & 0xFF;
 			}
-		}
-		else if (write_arr[i].reg_write_type == MSM_ACTUATOR_WRITE_DAC_AD5823) {
-			value = (next_lens_position <<
-				write_arr[i].data_shift) |
-				((hw_dword & write_arr[i].hw_mask) <<
-				write_arr[i].hw_shift);
-
-			buf[0] = write_arr[i].reg_addr;
-			buf[1] = (value & 0xff00)>>8;//MSB
-			buf[2] = value & 0xff;//LSB
-			length = 3;
-			CDBG("%s: position is 0x%x, MSB0x%x, LSB:0x%x\r\n", __func__, value, buf[1], buf[2]);
-			rc = msm_camera_i2c_txdata(&a_ctrl->i2c_client, buf, length);
-			if (rc < 0) {
-				pr_err("%s: i2c write error:%d\n",
-					__func__, rc);
-				return rc;
-			}
-			break;
-		}
-		else {
+		} else {
 			i2c_byte1 = write_arr[i].reg_addr;
 			i2c_byte2 = (hw_dword & write_arr[i].hw_mask) >>
 				write_arr[i].hw_shift;
@@ -215,6 +193,8 @@ int32_t msm_actuator_write_focus(
 		}
 		curr_lens_pos = next_lens_pos;
 		usleep(wait_time);
+        if(0 == damping_code_step)
+            break;
 	}
 
 	if (curr_lens_pos != code_boundary) {
@@ -315,6 +295,7 @@ int32_t msm_actuator_move_focus(
 			target_step_pos = dest_step_pos;
 			target_lens_pos =
 				a_ctrl->step_position_table[target_step_pos];
+			/*change from Qualcomm. delete some codes*/
 			rc = a_ctrl->func_tbl->
 				actuator_write_focus(
 					a_ctrl,
@@ -334,6 +315,7 @@ int32_t msm_actuator_move_focus(
 			target_step_pos = step_boundary;
 			target_lens_pos =
 				a_ctrl->step_position_table[target_step_pos];
+			/*change from Qualcomm. delete some codes*/
 			rc = a_ctrl->func_tbl->
 				actuator_write_focus(
 					a_ctrl,
@@ -469,8 +451,7 @@ int32_t msm_actuator_init(struct msm_actuator_ctrl_t *a_ctrl,
 	}
 	a_ctrl->total_steps = set_info->af_tuning_params.total_steps;
 	a_ctrl->pwd_step = set_info->af_tuning_params.pwd_step;
-	a_ctrl->total_steps = set_info->af_tuning_params.total_steps;
-
+	//delete this line for it is a duplicated written as the line before
 	if (copy_from_user(&a_ctrl->region_params,
 		(void *)set_info->af_tuning_params.region_params,
 		a_ctrl->region_size * sizeof(struct region_params_t)))

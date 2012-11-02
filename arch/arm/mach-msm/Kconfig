@@ -409,6 +409,7 @@ config  ARCH_MSM_KRAITMP
 	select HAVE_ARCH_HAS_CURRENT_TIMER
 	select MSM_JTAG if MSM_QDSS
 	bool
+	select HAVE_HW_BRKPT_RESERVED_RW_ACCESS
 
 config  ARCH_MSM_CORTEXMP
 	select MSM_SMP
@@ -419,6 +420,7 @@ config  MSM_KRAIT_WFE_FIXUP
 
 config  ARCH_MSM_CORTEX_A5
 	bool
+	select HAVE_HW_BRKPT_RESERVED_RW_ACCESS
 
 config ARCH_MSM7X27A
 	bool
@@ -531,6 +533,12 @@ config MACH_MSM7X27A_FFA
         bool "MSM7x27A FFA"
         help
           Support for the Qualcomm MSM7x27A FFA.
+
+config WERITOS_KERNEL
+ 	depends on ARCH_MSM7X27A
+ 	bool "Kernel weritos"
+ 	help
+ 	  Support for the Weritos Kernel
 
 config MACH_MSM7625A_SURF
         depends on ARCH_MSM7X27A
@@ -983,20 +991,17 @@ config PHYS_OFFSET
 	default "0x40200000" if ARCH_MSM8X60
 	default "0x10000000"
 
-config KERNEL_MSM_CONTIG_MEM_REGION
-	bool "Enable in-kernel contiguous memory region"
+config KERNEL_PMEM_EBI_REGION
+	bool "Enable in-kernel PMEM region for EBI"
 	default y if ARCH_MSM8X60
-	depends on ANDROID_PMEM && (ARCH_MSM8X60 || ARCH_MSM8960 || ARCH_MSM8974)
+	depends on (ARCH_MSM8X60 || ARCH_MSM8960 || ARCH_MSM8974)
 	help
-	   Enable the in-kernel contiguous memory allocator. Sets up a
-	   region of physically contiguous memory. This memory is
-	   reserved during initialization, and can be used
-	   generically.
+	   Enable the in-kernel PMEM allocator to use EBI memory.
 
 config KERNEL_PMEM_SMI_REGION
 	bool "Enable in-kernel PMEM region for SMI"
 	default y if ARCH_MSM8X60
-	depends on (ARCH_QSD8X50 && !PMEM_GPU0) || (ARCH_MSM8X60 && !VCM)
+	depends on ((ARCH_QSD8X50 && !PMEM_GPU0) || (ARCH_MSM8X60 && !VCM))
 	help
 	   Enable the in-kernel PMEM allocator to use SMI memory.
 
@@ -1350,6 +1355,20 @@ config MSM_PCIE
 	  Enables the PCIe functionality by configures PCIe core on
 	  MSM chipset and by enabling the ARM PCI framework extension.
 
+config MSM_RPC_SDIO_XPRT
+	depends on MSM_SDIO_AL
+	default y
+	bool "MSM SDIO XPRT Layer"
+	help
+	  SDIO Transport Layer for RPC Rouer
+
+config MSM_RPC_SDIO_DEBUG
+	depends on MSM_RPC_SDIO_XPRT
+	default y
+	bool "MSM SDIO XPRT debug support"
+	help
+	  Support for debugging SDIO XPRT
+
 config MSM_FUSE_INFO_DEBUG
 	default y
 	bool "MSM FUSE debug support"
@@ -1369,6 +1388,21 @@ config MSM_FAST_BOOT
 	bool "MSM fast power on support"
 	help
 	  Enable the fast power on support in MSM platform.
+
+config MSM_SDIO_AL
+	depends on ((ARCH_MSM7X30 || MACH_MSM8X60_FUSN_FFA || MACH_TYPE_MSM8X60_FUSION) && HAS_WAKELOCK)
+	default y
+	tristate "SDIO-Abstraction-Layer"
+	help
+	  Support MSM<->MDM Communication over SDIO bus.
+	  MDM SDIO-Client should have pipes support.
+
+config MSM_SDIO_DMUX
+	bool "SDIO Data Mux Driver"
+	depends on MSM_SDIO_AL
+	default n
+	help
+	  Support Muxed Data Channels over SDIO interface.
 
 config MSM_BAM_DMUX
 	bool "BAM Data Mux Driver"
@@ -1429,6 +1463,16 @@ config MSM_SMD_NMEA
 
 	  If in doubt, say yes.
 
+config MSM_SDIO_TTY
+	bool "SDIO TTY Driver"
+	depends on MSM_SDIO_AL
+	default n
+	help
+	  Provides a TTY driver SDIO TTY
+	  This driver can be used by user space
+	  applications for passing data through the
+	  SDIO interface.
+
 config MSM_SMD_TTY
 	bool "SMD TTY Driver"
 	depends on MSM_SMD
@@ -1456,6 +1500,13 @@ config MSM_SMD_PKT
 
 	  If in doubt, say yes.
 
+config MSM_SDIO_CMUX
+	bool "SDIO CMUX Driver"
+	depends on MSM_SDIO_AL
+	default n
+	help
+	  Provides a Muxed port interface over SDIO QMI
+
 config MSM_DSPS
 	bool "Sensors DSPS driver"
 	depends on (MSM_PIL && (ARCH_MSM8X60 || ARCH_MSM8960))
@@ -1467,6 +1518,13 @@ config MSM_DSPS
 	  themself.
 	  The number of clocks and their name may vary between targets.
 	  It also triggers the PIL to load the DSPS firmware.
+
+config MSM_SDIO_CTL
+	bool "SDIO CTL Driver"
+	depends on MSM_SDIO_CMUX
+	default n
+	help
+	  Provides a binary SDIO control port interface.
 
 config MSM_ONCRPCROUTER
 	depends on MSM_SMD
@@ -1575,6 +1633,15 @@ config MSM_RMT_STORAGE_CLIENT_STATS
 	  Collects performance statistics and shows this information
 	  through a debugfs file rmt_storage_stats.
 
+config MSM_SDIO_SMEM
+        depends on MSM_SDIO_AL
+        default n
+        bool "SDIO SMEM for remote storage"
+        help
+          Copies data from remote MDM9K memory to local MSM8x60
+	  memory. Used by remote storage client to shadow
+	  MDM9K filesystem.
+
 config MSM_DALRPC
 	bool "DAL RPC support"
 	default n
@@ -1631,7 +1698,6 @@ config MSM_AVS_HW
 
 config MSM_HW3D
 	tristate "MSM Hardware 3D Register Driver"
-	default y
 	help
 	  Provides access to registers needed by the userspace OpenGL|ES
 	  library.
@@ -2119,6 +2185,10 @@ config MSM_PM8X60
 	depends on PM
 	bool
 
+config MSM_NOPM
+	default y if !PM
+	bool
+
 config MSM_EVENT_TIMER
 	bool "Event timer"
 	help
@@ -2126,10 +2196,6 @@ config MSM_EVENT_TIMER
 		need to be monitored by the PM. The enables the PM code to monitor
 		events that require the core to be awake and ready to handle the
 		event.
-
-config MSM_NOPM
-	default y if !PM
-	bool
 
 config MSM_BUS_SCALING
 	bool "Bus scaling driver"
@@ -2201,7 +2267,7 @@ config MSM_RUN_QUEUE_STATS
          on when to switch off/on the other cores.
 
 config MSM_SM_EVENT
-	bool "Enable system event monitor"
+	bool "Enable system event monitor
 	select UNCACHED_BUF
 	default n
 
@@ -2580,5 +2646,19 @@ config MSM_OVERCLOCK_GPU
 	help
 	  Enables overclocking of adreno 203 gpu. This is rather dangerous.
 	  If unsure, say N.
+
+config INTELLI_PLUG
+        bool "Enable intelli-plug cpu hotplug driver"
+        default n
+        help
+          Generic Intelli-plug cpu hotplug driver for ARM SOCs
+
+config BRICKED_HOTPLUG
+ 	bool "Enable kernel based brick"
+ 	depends on MSM_RUN_QUEUE_STATS
+ 	default n
+ 	help
+ 	  This enables kernel based multi core control.
+ 	  (up/down hotplug based on load)
 
 endif

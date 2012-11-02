@@ -34,7 +34,7 @@
 #include <linux/slab.h>
 #include <linux/msm_audio_aac.h>
 #include <linux/memory_alloc.h>
-#include <linux/ion.h>
+#include <linux/msm_ion.h>
 
 #include <mach/msm_adsp.h>
 #include <mach/iommu.h>
@@ -1373,7 +1373,6 @@ static int audaac_process_eos(struct audio *audio,
 		rc = -EINVAL;
 		goto done;
 	}
-
 	if (copy_from_user(frame->data, buf_start, mfield_size)) {
 		rc = -EFAULT;
 		goto done;
@@ -1734,7 +1733,7 @@ static int audio_open(struct inode *inode, struct file *file)
 
 	MM_DBG("allocating mem sz = %d\n", mem_sz);
 	handle = ion_alloc(client, mem_sz, SZ_4K,
-		ION_HEAP(ION_AUDIO_HEAP_ID));
+		ION_HEAP(ION_AUDIO_HEAP_ID), 0);
 	if (IS_ERR_OR_NULL(handle)) {
 		MM_ERR("Unable to create allocate O/P buffers\n");
 		rc = -ENOMEM;
@@ -1760,7 +1759,7 @@ static int audio_open(struct inode *inode, struct file *file)
 		goto output_buff_get_flags_error;
 	}
 
-	audio->map_v_write = ion_map_kernel(client, handle, ionflag);
+	audio->map_v_write = ion_map_kernel(client, handle);
 	if (IS_ERR(audio->map_v_write)) {
 		MM_ERR("could not map write buffers,freeing instance 0x%08x\n",
 				(int)audio);
@@ -1776,7 +1775,7 @@ static int audio_open(struct inode *inode, struct file *file)
 	mem_sz = (PCM_BUFSZ_MIN * PCM_BUF_MAX_COUNT);
 	MM_DBG("allocating mem sz = %d\n", mem_sz);
 	handle = ion_alloc(client, mem_sz,
-			SZ_4K, ION_HEAP(ION_AUDIO_HEAP_ID));
+			SZ_4K, ION_HEAP(ION_AUDIO_HEAP_ID), 0);
 	if (IS_ERR_OR_NULL(handle)) {
 		MM_ERR("Unable to create allocate I/P buffers\n");
 		rc = -ENOMEM;
@@ -1803,8 +1802,7 @@ static int audio_open(struct inode *inode, struct file *file)
 		goto input_buff_get_flags_error;
 	}
 
-	audio->map_v_read = ion_map_kernel(client,
-		handle, ionflag);
+	audio->map_v_read = ion_map_kernel(client, handle);
 	if (IS_ERR(audio->map_v_read)) {
 		MM_ERR("could not map read buffers, freeing instance \
 				0x%08x\n", (int)audio);

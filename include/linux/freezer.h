@@ -167,7 +167,7 @@ static inline bool freezer_should_skip(struct task_struct *p)
 	__retval;							\
 })
 
-#define wait_event_freezable_exclusive(wq, condition)		\
+#define wait_event_freezable_exclusive(wq, condition)			\
 ({									\
 	int __retval;							\
 	freezer_do_not_count();						\

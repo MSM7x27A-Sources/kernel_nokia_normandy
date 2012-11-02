@@ -6957,14 +6957,6 @@ int msm_nand_scan(struct mtd_info *mtd, int maxchips)
 	mtd->_unpoint = NULL;
 	mtd->_read = msm_nand_read;
 	mtd->_write = msm_nand_write;
-<<<<<<< HEAD
-=======
-#if 0
-//#ifdef CONFIG_HUAWEI_KERNEL
-	/* add for android panic support*/
-	mtd->_panic_write = msm_nand_write_apanic;
-#endif
->>>>>>> d7fe698... msm: dma: upstream to CAF Ifaa5efdde8150f932a12d4f9eeccfb36ecb8f88f
 	mtd->_read_oob  = msm_nand_read_oob;
 	mtd->_write_oob = msm_nand_write_oob;
 	if (dual_nand_ctlr_present) {

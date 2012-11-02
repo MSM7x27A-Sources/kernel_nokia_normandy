@@ -38,7 +38,7 @@
 struct notifier_block freq_transition;
 struct notifier_block cpu_hotplug;
 
-#ifdef CONFIG_MSM_MPDEC
+#if defined(CONFIG_MSM_MPDEC) || defined(CONFIG_BRICKED_HOTPLUG)
 unsigned int get_rq_info(void)
 {
 	unsigned long flags = 0;

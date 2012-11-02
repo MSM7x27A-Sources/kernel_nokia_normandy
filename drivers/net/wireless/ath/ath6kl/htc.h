@@ -112,7 +112,7 @@
 #define HTC_TARGET_DEBUG_INTR_MASK         0x01
 #define HTC_TARGET_CREDIT_INTR_MASK        0xF0
 
-#define HTC_HOST_MAX_MSG_PER_BUNDLE        8
+#define HTC_HOST_MAX_MSG_PER_BUNDLE        7
 #define HTC_MIN_HTC_MSGS_TO_BUNDLE         2
 
 /* packet flags */
@@ -523,16 +523,9 @@ struct htc_target {
 	struct ath6kl_htc_credit_info *credit_info;
 	int tgt_creds;
 	unsigned int tgt_cred_sz;
-
-	/* protects free_ctrl_txbuf and free_ctrl_rxbuf */
 	spinlock_t htc_lock;
-
-	/* FIXME: does this protext rx_bufq and endpoint structures or what? */
 	spinlock_t rx_lock;
-
-	/* protects endpoint->txq */
 	spinlock_t tx_lock;
-
 	struct ath6kl_device *dev;
 	u32 htc_flags;
 	u32 rx_st_flags;
@@ -557,6 +550,13 @@ struct htc_target {
 
 	/* counts the number of Tx without bundling continously per AC */
 	u32 ac_tx_count[WMM_NUM_AC];
+
+	/* protects rx_compq */
+	spinlock_t rx_comp_lock;
+
+	struct workqueue_struct *rx_wq;
+	struct work_struct rx_work;
+	struct list_head rx_bufq;
 };
 
 void *ath6kl_htc_create(struct ath6kl *ar);
