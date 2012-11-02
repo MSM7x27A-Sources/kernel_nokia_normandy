@@ -197,9 +197,9 @@ struct hif_scatter_req {
 	/* bounce buffer for upper layers to copy to/from */
 	u8 *virt_dma_buf;
 
-	struct hif_scatter_item scat_list[1];
-
 	u32 scat_q_depth;
+
+	struct hif_scatter_item scat_list[1];
 };
 
 struct ath6kl_irq_proc_registers {
@@ -223,7 +223,6 @@ struct ath6kl_irq_enable_reg {
 } __packed;
 
 struct ath6kl_device {
-	/* protects irq_proc_reg and irq_en_reg below */
 	spinlock_t lock;
 	struct ath6kl_irq_proc_registers irq_proc_reg;
 	struct ath6kl_irq_enable_reg irq_en_reg;

@@ -33,7 +33,6 @@
 #include <linux/completion.h>
 #include <linux/err.h>
 #endif
-#include <linux/android_pmem.h>
 #include <mach/msm_iomap.h>
 #include <mach/socinfo.h>
 #include <linux/sched.h>
@@ -41,7 +40,6 @@
 /* fixme */
 #include <asm/tlbflush.h>
 #include <../../mm/mm.h>
-#include <linux/fmem.h>
 
 #if defined(CONFIG_ARCH_MSM7X27)
 static void *strongly_ordered_page;
@@ -363,16 +361,6 @@ void store_ttbr0(void)
 	/* Store TTBR0 for post-mortem debugging purposes. */
 	asm("mrc p15, 0, %0, c2, c0, 0\n"
 		: "=r" (msm_ttbr0));
-}
-
-int request_fmem_c_region(void *unused)
-{
-	return fmem_set_state(FMEM_C_STATE);
-}
-
-int release_fmem_c_region(void *unused)
-{
-	return fmem_set_state(FMEM_T_STATE);
 }
 
 unsigned long get_ddr_size(void)

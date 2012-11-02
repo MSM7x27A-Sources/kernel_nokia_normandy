@@ -1,6 +1,7 @@
+
 config ZCACHE
 	bool "Dynamic compression of swap pages and clean pagecache pages"
-	depends on (CLEANCACHE) && CRYPTO=y && ZSMALLOC=y
+	depends on (CLEANCACHE || FRONTSWAP) && CRYPTO=y && ZSMALLOC=y
 	select CRYPTO_LZO
 	default n
 	help

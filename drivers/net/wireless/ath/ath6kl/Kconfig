@@ -13,6 +13,12 @@ config ATH6KL_SDIO
 	  Please note that AR6002 and AR6001 are not supported by this
 	  driver.
 
+config WIFI_MAC_FROM_NV
+	tristate "Atheros ath6kl softmac"
+	depends on ATH6KL
+	---help---
+         Softmac.
+
 config ATH6KL_USB
 	tristate "Atheros ath6kl USB support"
 	depends on ATH6KL
@@ -30,3 +36,11 @@ config ATH6KL_DEBUG
 	depends on ATH6KL
 	---help---
 	  Enables debug support
+
+config ATH6KL_REGDOMAIN
+	bool "Atheros ath6kl regdomain support"
+	depends on ATH6KL
+	---help---
+	  Enabling this makes it possible to change the regdomain in
+	  the firmware. This can be only enabled if regulatory requirements
+	  are taken into account.

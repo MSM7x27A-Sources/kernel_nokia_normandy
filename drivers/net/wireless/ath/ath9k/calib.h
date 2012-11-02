@@ -19,6 +19,7 @@
 
 #include "hw.h"
 
+#define AR_PHY_CCA_FILTERWINDOW_LENGTH_INIT     3
 #define AR_PHY_CCA_FILTERWINDOW_LENGTH          5
 
 /* Internal noise floor can vary by about 6db depending on the frequency */

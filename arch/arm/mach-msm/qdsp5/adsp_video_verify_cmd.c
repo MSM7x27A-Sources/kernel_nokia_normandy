@@ -17,11 +17,11 @@
  */
 
 #include <linux/io.h>
-#include <linux/android_pmem.h>
 
 #include <mach/qdsp5/qdsp5vdeccmdi.h>
 #include "adsp.h"
 #include <mach/debug_mm.h>
+#include <linux/msm_ion.h>
 
 #define MAX_FLUSH_SIZE 160
 

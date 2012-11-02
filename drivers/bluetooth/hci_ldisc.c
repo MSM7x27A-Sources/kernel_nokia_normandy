@@ -4,7 +4,7 @@
  *
  *  Copyright (C) 2002-2003  Maxim Krasnyansky <maxk@qualcomm.com>
  *  Copyright (C) 2004-2005  Marcel Holtmann <marcel@holtmann.org>
- *  Copyright (c) 2000-2001, 2010-2012, The Linux Foundation. All rights reserved.
+ *  Copyright (c) 2000-2001, 2010-2012, Code Aurora Forum. All rights reserved.
  *
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -121,28 +121,16 @@ static inline struct sk_buff *hci_uart_dequeue(struct hci_uart *hu)
 
 int hci_uart_tx_wakeup(struct hci_uart *hu)
 {
+	struct tty_struct *tty = hu->tty;
+	struct hci_dev *hdev = hu->hdev;
+	struct sk_buff *skb;
+
 	if (test_and_set_bit(HCI_UART_SENDING, &hu->tx_state)) {
 		set_bit(HCI_UART_TX_WAKEUP, &hu->tx_state);
 		return 0;
 	}
 
 	BT_DBG("");
-
-	schedule_work(&hu->write_work);
-
-	return 0;
-}
-
-static void hci_uart_write_work(struct work_struct *work)
-{
-	struct hci_uart *hu = container_of(work, struct hci_uart, write_work);
-	struct tty_struct *tty = hu->tty;
-	struct hci_dev *hdev = hu->hdev;
-	struct sk_buff *skb;
-
-	/* REVISIT: should we cope with bad skbs or ->write() returning
-	 * and error value ?
-	 */
 
 restart:
 	clear_bit(HCI_UART_TX_WAKEUP, &hu->tx_state);
@@ -168,6 +156,7 @@ restart:
 		goto restart;
 
 	clear_bit(HCI_UART_SENDING, &hu->tx_state);
+	return 0;
 }
 
 /* ------- Interface to HCI layer ------ */
@@ -287,8 +276,6 @@ static int hci_uart_tty_open(struct tty_struct *tty)
 	hu->tty = tty;
 	tty->receive_room = 65536;
 
-	INIT_WORK(&hu->write_work, hci_uart_write_work);
-
 	spin_lock_init(&hu->rx_lock);
 	tasklet_init(&hu->tty_wakeup_task, hci_uart_tty_wakeup_action,
 			 (unsigned long)hu);
@@ -326,8 +313,6 @@ static void hci_uart_tty_close(struct tty_struct *tty)
 			hci_uart_close(hdev);
 
 		tasklet_kill(&hu->tty_wakeup_task);
-
-		cancel_work_sync(&hu->write_work);
 
 		if (test_and_clear_bit(HCI_UART_PROTO_SET, &hu->flags)) {
 			hu->proto->close(hu);
@@ -604,14 +589,24 @@ static int __init hci_uart_init(void)
 #ifdef CONFIG_BT_HCIUART_BCSP
 	bcsp_init();
 #endif
-#ifdef CONFIG_BT_HCIUART_LL
+#if defined(CONFIG_BT_HCIUART_LL) && defined(CONFIG_HUAWEI_BT_BCM43XX)
 	ll_init();
+#endif
+
+/*default without Huawei modification*/
+#if defined(CONFIG_BT_HCIUART_LL) && (!defined(CONFIG_HUAWEI_KERNEL))
+    ll_init();
 #endif
 #ifdef CONFIG_BT_HCIUART_ATH3K
 	ath_init();
 #endif
-#ifdef CONFIG_BT_HCIUART_IBS
+#if defined(CONFIG_BT_HCIUART_IBS) && defined(CONFIG_HUAWEI_BT_WCN2243)
 	ibs_init();
+#endif
+
+/*default without Huawei modification*/
+#if defined(CONFIG_BT_HCIUART_IBS) && (!defined(CONFIG_HUAWEI_KERNEL))
+    ibs_init();
 #endif
 
 	return 0;
@@ -627,13 +622,23 @@ static void __exit hci_uart_exit(void)
 #ifdef CONFIG_BT_HCIUART_BCSP
 	bcsp_deinit();
 #endif
-#ifdef CONFIG_BT_HCIUART_LL
+#if defined(CONFIG_BT_HCIUART_LL) && defined(CONFIG_HUAWEI_BT_BCM43XX)
+	ll_deinit();
+#endif
+
+/*default without Huawei modification*/
+#if defined(CONFIG_BT_HCIUART_LL) && (!defined(CONFIG_HUAWEI_KERNEL))
 	ll_deinit();
 #endif
 #ifdef CONFIG_BT_HCIUART_ATH3K
 	ath_deinit();
 #endif
-#ifdef CONFIG_BT_HCIUART_IBS
+#if defined(CONFIG_BT_HCIUART_IBS) && defined(CONFIG_HUAWEI_BT_WCN2243)
+	ibs_deinit();
+#endif
+
+/*default without Huawei modification*/
+#if defined(CONFIG_BT_HCIUART_IBS) && (!defined(CONFIG_HUAWEI_KERNEL))
 	ibs_deinit();
 #endif
 

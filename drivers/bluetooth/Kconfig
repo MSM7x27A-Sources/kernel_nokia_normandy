@@ -266,4 +266,11 @@ config BT_WILINK
 
 	  Say Y here to compile support for Texas Instrument's WiLink7 driver
 	  into the kernel or say M to compile it as module.
+
+config HUAWEI_BT_WCN2243
+ 	bool "Qualcomm WCN2243 Bluetooth"
+	default y
+ 	help
+ 	  Select Y to use Qualcomm's BlueZ stack. Used by WCN2243. Not used in Huawei devices.
+
 endmenu

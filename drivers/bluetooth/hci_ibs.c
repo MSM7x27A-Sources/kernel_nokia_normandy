@@ -5,7 +5,7 @@
  *  protocol extension to H4.
  *
  *  Copyright (C) 2007 Texas Instruments, Inc.
- *  Copyright (c) 2010, 2012 The Linux Foundation. All rights reserved.
+ *  Copyright (c) 2010, 2012 Code Aurora Forum. All rights reserved.
  *
  *  Acknowledgements:
  *  This file is based on hci_ll.c, which was...
@@ -745,7 +745,7 @@ static inline int ibs_check_data_len(struct ibs_struct *ibs, int len)
 static int ibs_recv(struct hci_uart *hu, void *data, int count)
 {
 	struct ibs_struct *ibs = hu->priv;
-	register char *ptr;
+	register unsigned char *ptr;
 	struct hci_event_hdr *eh;
 	struct hci_acl_hdr   *ah;
 	struct hci_sco_hdr   *sh;

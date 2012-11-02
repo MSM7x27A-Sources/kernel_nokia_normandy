@@ -82,14 +82,6 @@ source "drivers/staging/iio/Kconfig"
 
 source "drivers/staging/snappy/Kconfig"
 
-source "drivers/staging/zram/Kconfig"
-
-source "drivers/staging/zcache/Kconfig"
-
-source "drivers/staging/qcache/Kconfig"
-
-source "drivers/staging/zsmalloc/Kconfig"
-
 source "drivers/staging/wlags49_h2/Kconfig"
 
 source "drivers/staging/wlags49_h25/Kconfig"
@@ -99,6 +91,8 @@ source "drivers/staging/sm7xx/Kconfig"
 source "drivers/staging/crystalhd/Kconfig"
 
 source "drivers/staging/cxt1e1/Kconfig"
+
+source "drivers/staging/zcache/Kconfig"
 
 source "drivers/staging/xgifb/Kconfig"
 

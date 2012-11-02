@@ -44,8 +44,8 @@
 struct msm_bus_vectors {
 	int src; /* Master */
 	int dst; /* Slave */
-	uint64_t ab; /* Arbitrated bandwidth */
-	uint64_t ib; /* Instantaneous bandwidth */
+	uint64_t  ab; /* Arbitrated bandwidth */
+	uint64_t  ib; /* Instantaneous bandwidth */
 };
 
 struct msm_bus_paths {
@@ -95,7 +95,6 @@ static inline void
 msm_bus_cl_clear_pdata(struct msm_bus_scale_pdata *pdata)
 {
 }
-
 static inline uint32_t
 msm_bus_scale_register_client(struct msm_bus_scale_pdata *pdata)
 {
